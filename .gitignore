@@ -1,0 +1,6 @@
+build/
+dist/
+docs/api/
+*.dat
+*.dat.lock
+*.tmp
