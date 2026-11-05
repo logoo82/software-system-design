@@ -1,13 +1,13 @@
-package kr.ac.jnu.household;
+package household;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.*;
 import java.time.*;
 import java.util.*;
-import static kr.ac.jnu.household.Domain.*;
-import static kr.ac.jnu.household.Commands.*;
-import static kr.ac.jnu.household.AppException.Code.*;
+import static household.Domain.*;
+import static household.Commands.*;
+import static household.AppException.Code.*;
 
 /** 외부 테스트 라이브러리 없이 실행하는 베타 핵심 시나리오 검사. */
 public final class ServiceTest {

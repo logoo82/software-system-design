@@ -1,11 +1,11 @@
-package kr.ac.jnu.household;
+package household;
 
 import java.io.*;
 import java.nio.channels.*;
 import java.nio.file.*;
 import java.time.YearMonth;
-import kr.ac.jnu.household.Domain.State;
-import static kr.ac.jnu.household.AppException.Code.*;
+import household.Domain.State;
+import static household.AppException.Code.*;
 
 /**
  * 전체 상태를 Java 직렬화 파일에 저장한다. 파일 잠금으로 중복 실행을 막고,
@@ -62,10 +62,25 @@ public class DataRepository implements AutoCloseable {
             return State.empty(start);
         }
 
-        try (ObjectInputStream in = new ObjectInputStream(Files.newInputStream(file))) {
+        try (ObjectInputStream in =
+                new ObjectInputStream(Files.newInputStream(file)) {
+                    @Override
+                    protected Class<?> resolveClass(ObjectStreamClass descriptor)
+                            throws IOException, ClassNotFoundException {
+                        // 패키지 정리 전 버전에서 저장한 파일도 읽는다.
+                        String name = descriptor.getName();
+                        String oldPackage = "kr.ac.jnu.household.";
+
+                        if (name.startsWith(oldPackage) || name.startsWith("[L" + oldPackage)) {
+                            return Class.forName(name.replace(oldPackage, "household."));
+                        }
+
+                        return super.resolveClass(descriptor);
+                    }
+                }) {
             in.setObjectInputFilter(
                     ObjectInputFilter.Config.createFilter(
-                            "maxdepth=32;maxrefs=200000;maxbytes=33554432;kr.ac.jnu.household.*;java.base/*;!*"));
+                            "maxdepth=32;maxrefs=200000;maxbytes=33554432;household.*;java.base/*;!*"));
 
             Object value = in.readObject();
             if (!(value instanceof State state)) {

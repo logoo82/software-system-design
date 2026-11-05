@@ -1,4 +1,4 @@
-package kr.ac.jnu.household;
+package household;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -8,10 +8,10 @@ import java.util.*;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import static kr.ac.jnu.household.Domain.*;
-import static kr.ac.jnu.household.Commands.*;
-import kr.ac.jnu.household.Commands.Action;
-import static kr.ac.jnu.household.AccountService.*;
+import static household.Domain.*;
+import static household.Commands.*;
+import household.Commands.Action;
+import static household.AccountService.*;
 
 /**
  * 강의의 JFrame, JPanel, 레이아웃, ActionListener, JTable, JOptionPane을

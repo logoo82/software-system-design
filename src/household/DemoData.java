@@ -1,9 +1,9 @@
-package kr.ac.jnu.household;
+package household;
 
 import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
-import static kr.ac.jnu.household.Domain.*;
+import static household.Domain.*;
 
 /** 개인 데이터와 분리하여 실행할 수 있는 예시 데이터. */
 public final class DemoData {

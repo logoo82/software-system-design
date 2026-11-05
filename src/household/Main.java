@@ -1,4 +1,4 @@
-package kr.ac.jnu.household;
+package household;
 
 import java.awt.Font;
 import java.awt.event.*;

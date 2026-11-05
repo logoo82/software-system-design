@@ -1,12 +1,12 @@
-package kr.ac.jnu.household;
+package household;
 
 import java.math.*;
 import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
-import static kr.ac.jnu.household.Domain.*;
-import static kr.ac.jnu.household.Commands.*;
-import static kr.ac.jnu.household.AppException.Code.*;
+import static household.Domain.*;
+import static household.Commands.*;
+import static household.AppException.Code.*;
 
 /**
  * CP3 FS-01~05를 구현하는 업무 계층. 다섯 대표 함수는 동기화되어 변경의

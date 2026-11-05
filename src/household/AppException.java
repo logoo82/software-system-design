@@ -1,4 +1,4 @@
-package kr.ac.jnu.household;
+package household;
 
 /** 화면에서 한국어로 안내할 수 있는 업무·저장 오류. */
 public final class AppException extends RuntimeException {

@@ -62,13 +62,13 @@ java '-Dfile.encoding=UTF-8' -jar .\dist\ssd_ip_cp4_2026f_223247_app.jar --data 
 
 | 위치 | 내용 |
 |---|---|
-| `src/kr/ac/jnu/household/Main.java` | 프로그램 시작, 일반·데모 실행 선택 |
-| `src/kr/ac/jnu/household/MainFrame.java` | Swing 화면과 버튼 이벤트 |
-| `src/kr/ac/jnu/household/AccountService.java` | 입력 검사, 기능 처리와 계산 |
-| `src/kr/ac/jnu/household/DataRepository.java` | 파일 읽기, 저장과 잠금 |
-| `src/kr/ac/jnu/household/Domain.java` | 거래, 목표, 꾹참기 등의 데이터 클래스 |
-| `src/kr/ac/jnu/household/Commands.java` | 기능 호출에 전달하는 입력값 |
-| `test/kr/ac/jnu/household/ServiceTest.java` | 계산, CRUD, 저장 실패와 중복 반영 검사 |
+| `src/household/Main.java` | 프로그램 시작, 일반·데모 실행 선택 |
+| `src/household/MainFrame.java` | Swing 화면과 버튼 이벤트 |
+| `src/household/AccountService.java` | 입력 검사, 기능 처리와 계산 |
+| `src/household/DataRepository.java` | 파일 읽기, 저장과 잠금 |
+| `src/household/Domain.java` | 거래, 목표, 꾹참기 등의 데이터 클래스 |
+| `src/household/Commands.java` | 기능 호출에 전달하는 입력값 |
+| `test/household/ServiceTest.java` | 계산, CRUD, 저장 실패와 중복 반영 검사 |
 
 - [프로그램 구조와 처리 흐름](docs/design.md)
 - [클래스 관계도 원본](docs/class-diagram.mmd)

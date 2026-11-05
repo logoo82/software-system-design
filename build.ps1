@@ -28,6 +28,21 @@ $java = Join-Path $JdkHome 'bin/java.exe'
 $jar = Join-Path $JdkHome 'bin/jar.exe'
 $javadoc = Join-Path $JdkHome 'bin/javadoc.exe'
 
+# 이전 패키지의 클래스와 API 문서가 남지 않도록 생성 폴더를 비운다.
+$projectPath = [IO.Path]::GetFullPath($PSScriptRoot).TrimEnd('\') + '\'
+
+foreach ($outputFolder in @('build/classes', 'build/test-classes', 'docs/api')) {
+    $outputPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot $outputFolder))
+
+    if (-not $outputPath.StartsWith($projectPath, [StringComparison]::OrdinalIgnoreCase)) {
+        throw '프로젝트 밖의 경로는 정리할 수 없습니다.'
+    }
+
+    if (Test-Path -LiteralPath $outputPath) {
+        Remove-Item -LiteralPath $outputPath -Recurse -Force
+    }
+}
+
 New-Item -ItemType Directory -Force build/classes, build/test-classes, build/tmp, dist, docs/api |
     Out-Null
 
@@ -42,7 +57,7 @@ $tempPath = Join-Path $PSScriptRoot 'build/tmp'
 & $jar "-J-Djava.io.tmpdir=$tempPath" `
     --create `
     --file dist/ssd_ip_cp4_2026f_223247_app.jar `
-    --main-class kr.ac.jnu.household.Main `
+    --main-class household.Main `
     -C build/classes .
 
 if ($LASTEXITCODE -ne 0) {
@@ -58,7 +73,7 @@ if ($LASTEXITCODE -ne 0) {
 
 & $java '-Dfile.encoding=UTF-8' `
     -cp 'build/classes;build/test-classes' `
-    kr.ac.jnu.household.ServiceTest build/test-data
+    household.ServiceTest build/test-data
 
 if ($LASTEXITCODE -ne 0) {
     throw '기능 검사 실패'
@@ -74,7 +89,7 @@ if ($LASTEXITCODE -ne 0) {
     -Xdoclint:all,-missing `
     -d docs/api `
     -sourcepath src `
-    -subpackages kr.ac.jnu.household
+    -subpackages household
 
 if ($LASTEXITCODE -ne 0) {
     throw 'Javadoc 생성 실패'
