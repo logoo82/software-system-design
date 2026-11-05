@@ -1,0 +1,17 @@
+classDiagram
+class Main
+class MainFrame
+class AccountService
+class DataRepository
+class State
+class Entry
+class Goal
+class NoSpend
+Main ..> MainFrame : creates
+MainFrame --> AccountService : service
+AccountService --> DataRepository : repository
+AccountService --> State : state
+State --> "0..*" Entry
+State --> "0..*" Goal
+State --> "0..*" NoSpend
+NoSpend ..> "0..1" Goal : goalId
