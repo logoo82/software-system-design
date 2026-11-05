@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
 
-/** CP3 대표 함수의 입력값을 묶은 일반 명령 클래스 모음.
+/** 화면에서 입력한 값을 기능 처리 쪽으로 넘길 때 사용하는 클래스 모음.
  * @author 김승혁 223247
  * @version 0.4
  */
@@ -35,7 +35,7 @@ public final class Commands {
         APPLY_ACTUAL
     }
 
-    /** 거래 변경 및 AND 검색 명령. 생성 후 값은 변경하지 않는다. */
+    /** 거래에서 할 작업과 입력값, 검색 조건을 담는다. */
     public static final class TransactionCommand implements Serializable {
         private static final long serialVersionUID = 1L;
         private final Action action;
@@ -50,7 +50,7 @@ public final class Commands {
         private final String keyword;
 
         /**
-         * 거래 변경 및 AND 검색 명령 생성.
+         * 거래 입력이나 검색에 사용할 값을 모아둔다.
          * @param action 작업
          * @param id 수정·삭제 ID
          * @param date 거래일
@@ -166,7 +166,7 @@ public final class Commands {
         }
     }
 
-    /** 월별 예산 및 조회 명령. 생성 후 값은 변경하지 않는다. */
+    /** 예산을 저장하거나 조회할 달과 금액을 담는다. */
     public static final class BudgetCommand implements Serializable {
         private static final long serialVersionUID = 1L;
         private final Action action;
@@ -174,7 +174,7 @@ public final class Commands {
         private final BigDecimal budget;
 
         /**
-         * 월별 예산 및 조회 명령 생성.
+         * 예산을 저장하거나 확인할 때 사용할 값을 모아둔다.
          * @param action QUERY 또는 SET_BUDGET
          * @param month 조회 월
          * @param budget 설정할 예산
@@ -210,7 +210,7 @@ public final class Commands {
         }
     }
 
-    /** 목표 관리 명령. 생성 후 값은 변경하지 않는다. */
+    /** 목표에서 할 작업과 이름, 목표액, 실제 저축액을 담는다. */
     public static final class GoalCommand implements Serializable {
         private static final long serialVersionUID = 1L;
         private final Action action;
@@ -220,7 +220,7 @@ public final class Commands {
         private final BigDecimal actual;
 
         /**
-         * 목표 관리 명령 생성.
+         * 목표를 처리할 때 사용할 값을 모아둔다.
          * @param action 작업
          * @param id 목표 ID
          * @param name 목표 이름
@@ -277,7 +277,7 @@ public final class Commands {
         }
     }
 
-    /** 꾹참기 명령. 생성 후 값은 변경하지 않는다. */
+    /** 참은 소비 내용이나 목표 연결, 실제 반영에 필요한 값을 담는다. */
     public static final class NoSpendCommand implements Serializable {
         private static final long serialVersionUID = 1L;
         private final Action action;
@@ -290,7 +290,7 @@ public final class Commands {
         private final LocalDate to;
 
         /**
-         * 꾹참기 명령 생성.
+         * 꾹참기를 처리할 때 사용할 값을 모아둔다.
          * @param action 작업
          * @param id 기록 ID
          * @param item 소비 항목

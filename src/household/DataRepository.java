@@ -8,9 +8,8 @@ import household.Domain.State;
 import static household.AppException.Code.*;
 
 /**
- * 전체 상태를 Java 직렬화 파일에 저장한다. 파일 잠금으로 중복 실행을 막고,
- * 임시 파일 기록 후 원자적 교체가 지원될 때만 변경을 확정한다.
- * 지원하지 않으면 IO_ERROR로 종료하여 기존 파일을 보존한다.
+ * 가계부 내용을 파일에서 불러오고 저장한다.
+ * 같은 파일을 동시에 쓰지 않게 하고, 저장에 실패하면 원래 내용을 남겨둔다.
  * @author 김승혁
  * @version 0.4
  */
@@ -20,9 +19,9 @@ public class DataRepository implements AutoCloseable {
     private FileLock lock;
 
     /**
-     * 파일 경로를 준비하고 배타 잠금을 획득한다.
+     * 저장 위치를 준비하고 다른 실행에서 같은 파일을 쓰는지 확인한다.
      * @param file 데이터 파일
-     * @throws AppException 파일 사용 중 또는 경로 생성 실패
+     * @throws AppException 이미 사용 중인 파일이거나 저장 위치를 만들 수 없는 경우
      */
     public DataRepository(Path file) {
         this.file = file.toAbsolutePath().normalize();
@@ -35,6 +34,7 @@ public class DataRepository implements AutoCloseable {
                             StandardOpenOption.CREATE,
                             StandardOpenOption.WRITE);
 
+            // 같은 저장 파일을 다른 실행에서 이미 쓰고 있으면 중단한다.
             lock = lockChannel.tryLock();
             if (lock == null) {
                 throw new AppException(DATA_IN_USE, "같은 데이터로 실행 중인 프로그램을 먼저 종료해 주세요.");
@@ -52,10 +52,11 @@ public class DataRepository implements AutoCloseable {
     }
 
     /**
-     * 저장 파일을 읽는다. 부재만 빈 상태로 취급하고 손상 파일은 덮어쓰지 않는다.
-     * @param start 신규 기록 시작 월
-     * @return 저장된 전체 상태
-     * @throws AppException 읽기·형식 오류
+     * 전에 저장한 내용을 불러온다. 첫 실행이면 빈 목록으로 시작한다.
+     * 파일에 문제가 있으면 새 내용으로 덮어쓰지 않고 오류를 알린다.
+     * @param start 처음 기록을 시작할 달
+     * @return 불러온 가계부 내용
+     * @throws AppException 파일을 읽지 못하거나 저장 형식이 다른 경우
      */
     public State load(YearMonth start) {
         if (!Files.exists(file)) {
@@ -67,7 +68,7 @@ public class DataRepository implements AutoCloseable {
                     @Override
                     protected Class<?> resolveClass(ObjectStreamClass descriptor)
                             throws IOException, ClassNotFoundException {
-                        // 패키지 정리 전 버전에서 저장한 파일도 읽는다.
+                        // 폴더를 정리하기 전에 저장한 파일도 계속 읽을 수 있게 한다.
                         String name = descriptor.getName();
                         String oldPackage = "kr.ac.jnu.household.";
 
@@ -94,9 +95,9 @@ public class DataRepository implements AutoCloseable {
     }
 
     /**
-     * 변경본을 임시 파일에 완성한 다음 기존 파일을 교체한다.
-     * @param state 변경 불가능한 전체 상태
-     * @throws AppException 저장 실패 또는 원자적 교체 미지원
+     * 새 내용을 다른 파일에 먼저 적고, 끝나면 기존 저장 파일을 바꾼다.
+     * @param state 이번에 저장할 가계부 내용
+     * @throws AppException 파일을 쓰거나 안전하게 교체하지 못한 경우
      */
     public void commit(State state) {
         Path temp = null;
@@ -111,6 +112,7 @@ public class DataRepository implements AutoCloseable {
                 out.getFD().sync();
             }
 
+            // 새 파일 쓰기가 끝난 뒤에만 원래 저장 파일을 바꾼다.
             Files.move(
                     temp,
                     file,
@@ -136,7 +138,7 @@ public class DataRepository implements AutoCloseable {
         return file;
     }
 
-    /** 잠금과 파일 채널을 해제한다. */
+    /** 종료할 때 다른 실행에서도 파일을 사용할 수 있게 닫아준다. */
     @Override
     public void close() {
         try {

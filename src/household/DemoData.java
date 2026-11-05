@@ -5,17 +5,18 @@ import java.time.*;
 import java.util.*;
 import static household.Domain.*;
 
-/** 개인 데이터와 분리하여 실행할 수 있는 예시 데이터. */
+/** 처음 실행해볼 때 기능을 확인할 수 있도록 넣어둔 예시 데이터. */
 public final class DemoData {
     private DemoData() {}
 
     /**
-     * 보고서 계산 예시와 일치하는 가상 데이터.
+     * 보고서와 같은 숫자를 확인할 수 있도록 거래와 목표를 준비한다.
      * @return 2026년 10월 15일 기준 예시
      */
     public static State create() {
         List<Entry> entries = new ArrayList<>();
 
+        // 지난 3개월 자료를 넣어서 소비 비교를 해볼 수 있게 한다.
         for (int i = 7; i <= 9; i++) {
             entries.add(
                     entry(
@@ -28,6 +29,7 @@ public final class DemoData {
             entries.add(entry(LocalDate.of(2026, i, 13), Type.EXPENSE, "기타", "80000", "이전 월 기타"));
         }
 
+        // 이번 달 예시 금액은 보고서의 계산 결과에 맞춰둔다.
         entries.add(entry(LocalDate.of(2026, 10, 1), Type.INCOME, "용돈", "1000000", "월 생활비"));
         entries.add(entry(LocalDate.of(2026, 10, 10), Type.EXPENSE, "식비", "140000", "식료품과 식사"));
         entries.add(entry(LocalDate.of(2026, 10, 15), Type.EXPENSE, "식비", "10000", "점심 식사"));

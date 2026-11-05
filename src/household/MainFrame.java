@@ -14,8 +14,8 @@ import household.Commands.Action;
 import static household.AccountService.*;
 
 /**
- * 강의의 JFrame, JPanel, 레이아웃, ActionListener, JTable, JOptionPane을
- * 사용한 베타 화면. 화면은 입력·표시에 집중하고 계산은 AccountService에 맡긴다.
+ * 가계부 화면과 버튼 동작을 모아둔 클래스.
+ * 입력은 여기서 받고, 계산이나 저장이 필요한 처리는 AccountService에 넘긴다.
  * @author 김승혁
  * @version 0.4
  */
@@ -67,9 +67,9 @@ public final class MainFrame extends JFrame {
     private List<NoSpend> displayedNoSpends = List.of();
 
     /**
-     * 여섯 기능 화면을 생성한다.
-     * @param service 업무 계층
-     * @param demo 데모 날짜·데이터 안내 표시 여부
+     * 메뉴와 각 화면을 만들고, 처음 선택한 달의 내용을 보여준다.
+     * @param service 입력값을 처리하고 계산할 객체
+     * @param demo 예시 데이터로 실행 중인지 여부
      */
     public MainFrame(AccountService service, boolean demo) {
         super("Smart Household Account Book  |  Beta 0.4" + (demo ? "  |  데모" : ""));
@@ -104,6 +104,7 @@ public final class MainFrame extends JFrame {
         top.add(dates, BorderLayout.EAST);
         root.add(top, BorderLayout.NORTH);
 
+        // 왼쪽 메뉴를 만들고 버튼마다 이동할 화면을 연결한다.
         JPanel menu = new JPanel(new GridLayout(7, 1, 0, 9));
         menu.setPreferredSize(new Dimension(150, 0));
         String[] names = {"대시보드", "거래 내역", "월별 예산", "소비 분석", "미래 목표", "꾹참기"};
@@ -116,6 +117,7 @@ public final class MainFrame extends JFrame {
         root.add(menu, BorderLayout.WEST);
         root.add(cards, BorderLayout.CENTER);
 
+        // 화면은 미리 만들어두고 메뉴를 누르면 하나씩 보여준다.
         cards.add(dashboardPanel(), "대시보드");
         cards.add(transactionPanel(), "거래 내역");
         cards.add(budgetPanel(), "월별 예산");
@@ -138,7 +140,7 @@ public final class MainFrame extends JFrame {
     }
 
     /**
-     * 메뉴와 같은 방식으로 지정 화면을 표시한다.
+     * 선택한 메뉴에 맞는 화면으로 바꾼다.
      * @param name 대시보드, 거래 내역, 월별 예산, 소비 분석, 미래 목표, 꾹참기
      */
     public void selectPage(String name) {
@@ -410,6 +412,7 @@ public final class MainFrame extends JFrame {
         return p;
     }
 
+    // 기존 거래가 없으면 추가하고, 선택한 거래가 있으면 수정한다.
     private void editEntry(Entry old) {
         JTextField date =
                 new JTextField(
@@ -446,6 +449,7 @@ public final class MainFrame extends JFrame {
         }
     }
 
+    // 목표 입력창에서는 새로 모은 금액이 아니라 현재 저축 총액을 받는다.
     private void editGoal(Goal old) {
         JTextField name = new JTextField(old == null ? "" : old.getName(), 18);
         JTextField target = new JTextField(old == null ? "" : old.getTarget().toPlainString());
@@ -466,6 +470,7 @@ public final class MainFrame extends JFrame {
         }
     }
 
+    // 참은 소비를 기록한다. 여기서는 실제 저축액이 늘지 않는다.
     private void addNoSpend() {
         JTextField item = new JTextField(18);
         JTextField amount = new JTextField();
@@ -510,6 +515,7 @@ public final class MainFrame extends JFrame {
         }
     }
 
+    // 실제로 저축했는지 한 번 더 물어본 뒤 목표에 반영한다.
     private void applySaving() {
         NoSpend n = selectedNoSpend();
 
@@ -522,6 +528,7 @@ public final class MainFrame extends JFrame {
         }
     }
 
+    // 조회한 달의 내용을 다시 계산해서 화면과 표를 갱신한다.
     private void refreshAll() {
         Summary s =
                 service.manageMonthlyFinance(
@@ -747,6 +754,7 @@ public final class MainFrame extends JFrame {
                         : displayedNoSpends.get(nsTable.convertRowIndexToModel(row));
         receipt.setText(n == null ? "꾹참기 내역을 선택하면 영수증을 확인할 수 있습니다." : service.receipt(n.getId()));
         receipt.setCaretPosition(0);
+        // 선택한 기록에서 할 수 있는 작업만 버튼을 켜둔다.
         linkButton.setEnabled(
                 n != null
                         && !n.getApplied()
@@ -796,6 +804,7 @@ public final class MainFrame extends JFrame {
         }
     }
 
+    // 표를 정렬했어도 사용자가 선택한 거래를 찾아준다.
     private Entry selectedEntry() {
         int r = txTable.getSelectedRow();
 
@@ -859,6 +868,7 @@ public final class MainFrame extends JFrame {
         return b;
     }
 
+    // 버튼 처리를 하다가 문제가 생기면 화면에 안내한다.
     private void perform(Runnable action) {
         try {
             action.run();

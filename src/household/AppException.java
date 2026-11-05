@@ -1,6 +1,6 @@
 package household;
 
-/** 화면에서 한국어로 안내할 수 있는 업무·저장 오류. */
+/** 처리 중 문제가 생겼을 때 화면에 알려줄 오류. */
 public final class AppException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
@@ -25,7 +25,7 @@ public final class AppException extends RuntimeException {
     private final Code code;
 
     /**
-     * 오류 상태와 안내를 설정한다.
+     * 어떤 문제인지와 화면에 보여줄 설명을 담는다.
      * @param code 상태 코드
      * @param message 사용자 안내
      */

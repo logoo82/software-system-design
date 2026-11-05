@@ -9,7 +9,7 @@ import static household.Domain.*;
 import static household.Commands.*;
 import static household.AppException.Code.*;
 
-/** 외부 테스트 라이브러리 없이 실행하는 베타 핵심 시나리오 검사. */
+/** 계산과 저장, 꾹참기 반영이 제대로 되는지 확인하는 코드. */
 public final class ServiceTest {
     private static final Clock CLOCK =
             Clock.fixed(Instant.parse("2026-10-15T03:00:00Z"), ZoneId.of("Asia/Seoul"));
@@ -18,9 +18,9 @@ public final class ServiceTest {
     private ServiceTest() {}
 
     /**
-     * 계산·검증·변경·저장 실패·재로딩·동시 요청을 검사한다.
-     * @param args 테스트 작업 폴더
-     * @throws Exception 테스트 실패 또는 파일 오류
+     * 빈 상태부터 시작해서 주요 기능을 하나씩 확인한다.
+     * @param args 확인용 데이터를 만들 폴더
+     * @throws Exception 예상한 결과와 다르거나 파일을 다루다 문제가 생긴 경우
      */
     public static void main(String[] args) throws Exception {
         Path dir = Path.of(args.length == 0 ? "build/test-data" : args[0]);
@@ -29,6 +29,7 @@ public final class ServiceTest {
         Path folder = Files.createTempDirectory(dir, "run-");
         Path file = folder.resolve("ledger.dat");
 
+        // 먼저 아무것도 저장하지 않은 상태가 잘 열리는지 확인한다.
         try (DataRepository repo = new DataRepository(file)) {
             AccountService s = new AccountService(repo, CLOCK);
             eq(s.snapshot().getEntries().size(), 0, "first run empty");
@@ -57,6 +58,7 @@ public final class ServiceTest {
 
         try (DataRepository repo = new DataRepository(file)) {
             AccountService s = new AccountService(repo, CLOCK);
+            // 예시 데이터로 수입, 지출과 예산 계산 결과를 확인한다.
             Summary sum =
                     s.manageMonthlyFinance(
                             new BudgetCommand(Action.QUERY, YearMonth.of(2026, 10), null));
@@ -87,6 +89,7 @@ public final class ServiceTest {
                     "700000",
                     "future budget saved");
 
+            // 식비 비교와 20% 절감액이 보고서 숫자와 맞는지 본다.
             Analysis a = s.analyzeSpending(YearMonth.of(2026, 10), "식비", b("0.20"));
             eq(a.getBaselineMonths(), 3, "three baseline months");
             CategoryStat food =
@@ -118,6 +121,7 @@ public final class ServiceTest {
                     () -> s.analyzeSpending(YearMonth.of(2026, 10), "식비", null),
                     "incomplete reduction rejected");
 
+            // 검색한 거래를 수정하고 삭제해도 합계가 맞는지 확인한다.
             List<Entry> query =
                     s.manageTransaction(
                             new TransactionCommand(
@@ -263,6 +267,7 @@ public final class ServiceTest {
                                             null)),
                     "missing entry");
 
+            // 꾹참기를 기록한 금액이 실제 저축에 한 번만 들어가는지 확인한다.
             NoSpend n = s.snapshot().getNoSpends().get(0);
             Goal g = s.snapshot().getGoals().get(0);
             amount(g.getActual(), "500000", "virtual register leaves actual unchanged");
@@ -337,6 +342,7 @@ public final class ServiceTest {
                             g.getId(),
                             null,
                             null));
+            // 동시에 반영을 요청해도 같은 금액이 두 번 들어가면 안 된다.
             Thread t1 = new Thread(() -> applyIgnoringDuplicate(s, without.getId()));
             Thread t2 = new Thread(() -> applyIgnoringDuplicate(s, without.getId()));
 
@@ -398,6 +404,7 @@ public final class ServiceTest {
                     "applied reload");
         }
 
+        // 저장 중 문제가 생겼을 때 원래 내용이 그대로 남는지 본다.
         Path failFile = folder.resolve("failure.dat");
         try (DataRepository writer = new DataRepository(failFile)) {
             writer.commit(DemoData.create());
@@ -438,6 +445,7 @@ public final class ServiceTest {
                 true,
                 "failure preserves file bytes");
 
+        // 손상된 파일은 읽지 않고, 원본도 덮어쓰지 않는지 확인한다.
         Path corrupt = folder.resolve("corrupt.dat");
         Files.writeString(corrupt, "not a serialized ledger");
         try (DataRepository repo = new DataRepository(corrupt)) {
@@ -445,6 +453,7 @@ public final class ServiceTest {
         }
         eq(Files.readString(corrupt), "not a serialized ledger", "corrupt file not overwritten");
 
+        // 지출이 없던 달을 포함한 평균과 빈 달의 분석도 확인한다.
         Path sparse = folder.resolve("sparse.dat");
         try (DataRepository repo = new DataRepository(sparse)) {
             repo.commit(

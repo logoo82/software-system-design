@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
 
-/** 저장 모델과 계산 결과를 정의하는 일반 데이터 클래스 모음.
+/** 거래, 목표, 꾹참기 내용과 계산 결과를 담아두는 클래스 모음.
  * @author 김승혁 223247
  * @version 0.4
  */
@@ -21,7 +21,7 @@ public final class Domain {
         EXPENSE
     }
 
-    /** 수입 또는 지출 한 건. 생성 후 값은 변경하지 않는다. */
+    /** 수입이나 지출 한 건에 들어가는 내용. */
     public static final class Entry implements Serializable {
         private static final long serialVersionUID = 1L;
         private final UUID id;
@@ -104,7 +104,7 @@ public final class Domain {
         }
     }
 
-    /** 미래 목표. 생성 후 값은 변경하지 않는다. */
+    /** 목표 이름과 금액, 지금까지 실제로 저축한 금액. */
     public static final class Goal implements Serializable {
         private static final long serialVersionUID = 1L;
         private final UUID id;
@@ -159,7 +159,7 @@ public final class Domain {
         }
     }
 
-    /** 참은 소비 기록. 생성 후 값은 변경하지 않는다. */
+    /** 참은 소비 한 건과 실제 저축에 반영했는지 여부. */
     public static final class NoSpend implements Serializable {
         private static final long serialVersionUID = 1L;
         private final UUID id;
@@ -242,7 +242,7 @@ public final class Domain {
         }
     }
 
-    /** 전체 저장 데이터. 생성 후 값은 변경하지 않는다. */
+    /** 파일에 함께 저장할 거래, 예산, 목표와 꾹참기 내용. */
     public static final class State implements Serializable {
         private static final long serialVersionUID = 1L;
         private final List<Entry> entries;
@@ -313,7 +313,7 @@ public final class Domain {
         }
 
         /**
-         * 신규 사용자의 빈 데이터.
+         * 처음 실행했을 때 사용할 빈 목록을 만든다.
          * @param month 기록 시작 월
          * @return 빈 상태
          */
@@ -322,7 +322,7 @@ public final class Domain {
         }
     }
 
-    /** 월별 재정 현황. 생성 후 값은 변경하지 않는다. */
+    /** 선택한 달의 수입, 지출과 예산 계산 결과. */
     public static final class Summary implements Serializable {
         private static final long serialVersionUID = 1L;
         private final BigDecimal income;
@@ -429,7 +429,7 @@ public final class Domain {
         }
     }
 
-    /** 카테고리별 분석값. 생성 후 값은 변경하지 않는다. */
+    /** 카테고리별로 쓴 금액과 이전 달들의 평균을 비교한 결과. */
     public static final class CategoryStat implements Serializable {
         private static final long serialVersionUID = 1L;
         private final String category;
@@ -512,7 +512,7 @@ public final class Domain {
         }
     }
 
-    /** 소비 분석 결과. 생성 후 값은 변경하지 않는다. */
+    /** 분석 화면에 보여줄 소비 내역과 예상 절감액. */
     public static final class Analysis implements Serializable {
         private static final long serialVersionUID = 1L;
         private final List<CategoryStat> categories;
@@ -595,7 +595,7 @@ public final class Domain {
         }
     }
 
-    /** 목표별 실제 및 가상 현황. 생성 후 값은 변경하지 않는다. */
+    /** 목표별 실제 저축액과 가상 절약액을 구분해서 보여줄 값. */
     public static final class GoalStatus implements Serializable {
         private static final long serialVersionUID = 1L;
         private final Goal goal;
