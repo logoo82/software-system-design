@@ -37,17 +37,17 @@ public class DataRepository implements AutoCloseable {
             // 같은 저장 파일을 다른 실행에서 이미 쓰고 있으면 중단한다.
             lock = lockChannel.tryLock();
             if (lock == null) {
-                throw new AppException(DATA_IN_USE, "같은 데이터로 실행 중인 프로그램을 먼저 종료해 주세요.");
+                throw new AppException(DATA_IN_USE, "같은 파일을 쓰는 프로그램을 먼저 종료해야 함.");
             }
         } catch (OverlappingFileLockException e) {
             close();
-            throw new AppException(DATA_IN_USE, "데이터 파일을 이미 사용 중입니다.");
+            throw new AppException(DATA_IN_USE, "저장 파일이 이미 사용 중임.");
         } catch (IOException | AppException e) {
             close();
             if (e instanceof AppException a) {
                 throw a;
             }
-            throw new AppException(IO_ERROR, "데이터 경로를 열 수 없습니다: " + e.getMessage());
+            throw new AppException(IO_ERROR, "저장 위치를 열 수 없음: " + e.getMessage());
         }
     }
 
@@ -90,7 +90,7 @@ public class DataRepository implements AutoCloseable {
 
             return state;
         } catch (IOException | ClassNotFoundException | RuntimeException e) {
-            throw new AppException(IO_ERROR, "데이터를 읽지 못했습니다. 원본 파일은 유지됩니다: " + e.getMessage());
+            throw new AppException(IO_ERROR, "파일을 읽을 수 없음. 원본은 유지됨: " + e.getMessage());
         }
     }
 
@@ -119,7 +119,7 @@ public class DataRepository implements AutoCloseable {
                     StandardCopyOption.ATOMIC_MOVE,
                     StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-            throw new AppException(IO_ERROR, "저장에 실패했습니다. 변경 전 상태를 유지합니다: " + e.getMessage());
+            throw new AppException(IO_ERROR, "저장 실패함. 기존 내용은 유지됨: " + e.getMessage());
         } finally {
             if (temp != null) {
                 try {

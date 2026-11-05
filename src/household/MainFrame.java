@@ -37,7 +37,7 @@ public final class MainFrame extends JFrame {
     private final JLabel budgetSummary = new JLabel();
 
     private final JLabel analysisInfo = new JLabel();
-    private final JLabel savings = new JLabel("절감 조건을 선택하고 계산을 눌러 주세요.");
+    private final JLabel savings = new JLabel(" ");
     private final JComboBox<String> reductionCategory =
             new JComboBox<>(CATEGORIES.toArray(new String[0]));
     private final JSpinner reduction = new JSpinner(new SpinnerNumberModel(20, 1, 100, 1));
@@ -128,9 +128,6 @@ public final class MainFrame extends JFrame {
         JPanel footer = new JPanel(new BorderLayout());
         notice.setForeground(new Color(28, 80, 110));
         footer.add(notice, BorderLayout.NORTH);
-        JLabel path = new JLabel("저장 위치: " + service.dataPath());
-        path.setFont(path.getFont().deriveFont(11f));
-        footer.add(path, BorderLayout.SOUTH);
         root.add(footer, BorderLayout.SOUTH);
 
         year.addChangeListener(e -> perform(this::refreshAll));
@@ -163,11 +160,6 @@ public final class MainFrame extends JFrame {
 
         forecast.setFont(forecast.getFont().deriveFont(17f));
         content.add(forecast);
-        content.add(Box.createVerticalStrut(30));
-
-        content.add(new JLabel("월간 잔액 = 선택 월 수입 - 지출 (은행 계좌 잔액과 다릅니다)"));
-        content.add(Box.createVerticalStrut(14));
-        content.add(new JLabel("구매를 참은 행동은 꾹참기에 기록하고, 실제 저축은 별도로 확인하세요."));
 
         p.add(content, BorderLayout.CENTER);
 
@@ -208,7 +200,7 @@ public final class MainFrame extends JFrame {
                                     txCategory.setSelectedIndex(0);
                                     refreshTransactions();
                                 }),
-                        new JLabel("날짜: YYYY-MM-DD / 빈 조건은 전체")));
+                        new JLabel("YYYY-MM-DD")));
 
         JPanel center = new JPanel(new BorderLayout(0, 12));
         center.add(header, BorderLayout.NORTH);
@@ -236,7 +228,7 @@ public final class MainFrame extends JFrame {
                                                         null,
                                                         null,
                                                         null));
-                                        changed("거래를 삭제했습니다.");
+                                        changed("거래 삭제함.");
                                     }
                                 })),
                 BorderLayout.SOUTH);
@@ -261,19 +253,12 @@ public final class MainFrame extends JFrame {
                                                     Action.SET_BUDGET,
                                                     selectedMonth(),
                                                     number(budget.getText())));
-                                    changed("예산을 저장했습니다.");
+                                    changed("예산 저장함.");
                                 })));
 
         body.add(Box.createVerticalStrut(24));
         budgetSummary.setFont(budgetSummary.getFont().deriveFont(18f));
         body.add(budgetSummary);
-        body.add(Box.createVerticalStrut(26));
-
-        body.add(new JLabel("예산은 0원보다 큰 정수로 입력하세요. 예산이 없어도 거래 현황을 조회할 수 있습니다."));
-        body.add(Box.createVerticalStrut(14));
-        body.add(new JLabel("현재 월 예상 지출 = 오늘까지 지출 ÷ 경과 일수 × 월 전체 일수"));
-        body.add(Box.createVerticalStrut(14));
-        body.add(new JLabel("현재 소비 속도가 계속된다는 가정이며 고정비·계절성은 반영하지 않습니다."));
 
         body.getComponent(0).setMaximumSize(new Dimension(1000, 48));
         for (Component c : body.getComponents()) {
@@ -294,7 +279,7 @@ public final class MainFrame extends JFrame {
         center.add(new JScrollPane(analysisTable));
         p.add(center);
 
-        JPanel bottom = new JPanel(new GridLayout(3, 1));
+        JPanel bottom = new JPanel(new GridLayout(2, 1));
         bottom.add(
                 flow(
                         new JLabel("절감 카테고리"),
@@ -304,7 +289,6 @@ public final class MainFrame extends JFrame {
                         new JLabel("%"),
                         button("계산", () -> refreshAnalysis(true))));
         bottom.add(savings);
-        bottom.add(new JLabel("현재 월은 월중 누적액입니다. 과거 한 달 평균과 기간이 달라 증감률 해석에 주의하세요."));
         p.add(bottom, BorderLayout.SOUTH);
 
         return p;
@@ -315,7 +299,6 @@ public final class MainFrame extends JFrame {
         p.add(new JScrollPane(goalTable));
 
         JPanel bottom = new JPanel(new BorderLayout());
-        bottom.add(new JLabel("가상 절약액을 실제 저축액이나 실제 달성률에 합산하지 않습니다."), BorderLayout.NORTH);
         bottom.add(
                 flow(
                         button("목표 추가", () -> editGoal(null)),
@@ -327,7 +310,7 @@ public final class MainFrame extends JFrame {
                                     String value =
                                             JOptionPane.showInputDialog(
                                                     this,
-                                                    "실제로 새로 저축한 금액 (원)\n꾹참기로 이미 반영한 금액을 다시 입력하지 마세요.");
+                                                    "추가 저축액 (원)\n꾹참기 반영액은 제외함.");
                                     if (value != null) {
                                         service.manageGoal(
                                                 new GoalCommand(
@@ -336,14 +319,14 @@ public final class MainFrame extends JFrame {
                                                         null,
                                                         null,
                                                         number(value)));
-                                        changed("실제 저축액을 추가했습니다.");
+                                        changed("저축액 추가함.");
                                     }
                                 }),
                         button(
                                 "선택 삭제",
                                 () -> {
                                     Goal g = selectedGoal();
-                                    if (confirm("목표를 삭제할까요? 꾹참기 이력은 유지하고 목표 연결은 해제합니다.")) {
+                                    if (confirm("목표를 삭제할까요?\n꾹참기 기록은 유지됨.")) {
                                         service.manageGoal(
                                                 new GoalCommand(
                                                         Action.DELETE,
@@ -351,7 +334,7 @@ public final class MainFrame extends JFrame {
                                                         null,
                                                         null,
                                                         null));
-                                        changed("목표를 삭제하고 연결을 해제했습니다.");
+                                        changed("목표 삭제함.");
                                     }
                                 })),
                 BorderLayout.SOUTH);
@@ -445,7 +428,7 @@ public final class MainFrame extends JFrame {
                             null,
                             null,
                             null));
-            changed("거래를 저장했습니다.");
+            changed("거래 저장함.");
         }
     }
 
@@ -466,7 +449,7 @@ public final class MainFrame extends JFrame {
                             name.getText(),
                             number(target.getText()),
                             number(actual.getText())));
-            changed("목표를 저장했습니다.");
+            changed("목표 저장함.");
         }
     }
 
@@ -493,7 +476,7 @@ public final class MainFrame extends JFrame {
                                     selected.id,
                                     null,
                                     null));
-            changed("가상 절약 기록을 저장했습니다. 실제 저축액은 변하지 않습니다.");
+            changed("꾹참기 기록함.");
             selectNoSpend(result.get(0).getId());
         }
     }
@@ -505,12 +488,12 @@ public final class MainFrame extends JFrame {
         if (form("기존 꾹참기에 목표 연결", new String[] {"연결할 목표"}, new JComponent[] {choices})) {
             GoalChoice g = (GoalChoice) choices.getSelectedItem();
             if (g.id == null) {
-                throw new AppException(AppException.Code.GOAL_REQUIRED, "등록된 목표를 선택해 주세요.");
+                throw new AppException(AppException.Code.GOAL_REQUIRED, "연결할 목표를 선택해야 함.");
             }
             service.manageNoSpend(
                     new NoSpendCommand(
                             Action.LINK_GOAL, n.getId(), null, null, null, g.id, null, null));
-            changed("목표를 연결했습니다.");
+            changed("목표 연결함.");
             selectNoSpend(n.getId());
         }
     }
@@ -519,11 +502,11 @@ public final class MainFrame extends JFrame {
     private void applySaving() {
         NoSpend n = selectedNoSpend();
 
-        if (confirm(won(n.getAmount()) + "원 전액을 실제로 저축했나요?\n목표의 실제 저축액에 한 번만 반영합니다.")) {
+        if (confirm(won(n.getAmount()) + "원을 실제 저축에 반영할까요?")) {
             service.manageNoSpend(
                     new NoSpendCommand(
                             Action.APPLY_ACTUAL, n.getId(), null, null, null, null, null, null));
-            changed("실제 저축액에 반영했습니다.");
+            changed("실제 저축에 반영함.");
             selectNoSpend(n.getId());
         }
     }
@@ -537,7 +520,7 @@ public final class MainFrame extends JFrame {
 
         dashboard.setText(
                 future
-                        ? "미래 월은 예산만 설정할 수 있습니다."
+                        ? "미래 월은 예산만 설정 가능함."
                         : "<html>총수입　"
                                 + won(s.getIncome())
                                 + "원<br><br>총지출　"
@@ -563,7 +546,7 @@ public final class MainFrame extends JFrame {
                     + won(s.getForecast())
                     + "원<br><br>"
                     + (s.getBudget() == null
-                        ? "예산을 설정하면 초과 가능성을 확인할 수 있습니다."
+                        ? "예산 미설정"
                         : s.getOverrun().signum() > 0
                             ? "<font color='#A53929'>예산 초과 "
                                 + (selectedMonth().equals(YearMonth.from(service.today()))
@@ -571,7 +554,7 @@ public final class MainFrame extends JFrame {
                                     : "")
                                 + won(s.getOverrun())
                                 + "원</font>"
-                            : "예산 범위 안입니다.")
+                            : "예산 초과 없음.")
                     + "</html>"
         );
 
@@ -679,11 +662,10 @@ public final class MainFrame extends JFrame {
         }
 
         nsTotal.setText(
-                "조회 "
-                        + displayedNoSpends.size()
-                        + "건  |  조회 기간 가상 절약 합계 "
+                displayedNoSpends.size()
+                        + "건  |  가상 절약 합계 "
                         + won(total)
-                        + "원  |  실제 저축과 합산하지 않음");
+                        + "원");
         if (!displayedNoSpends.isEmpty()) {
             nsTable.setRowSelectionInterval(0, 0);
         } else {
@@ -696,7 +678,7 @@ public final class MainFrame extends JFrame {
         m.setRowCount(0);
 
         if (selectedMonth().isAfter(YearMonth.from(service.today()))) {
-            analysisInfo.setText("미래 월은 분석할 수 없습니다.");
+            analysisInfo.setText("미래 월은 분석할 수 없음.");
             savings.setText(" ");
             return;
         }
@@ -712,12 +694,11 @@ public final class MainFrame extends JFrame {
 
         analysisInfo.setText(
                 a.getEmpty()
-                        ? "분석할 지출이 없습니다."
-                        : "기준: "
-                                + selectedMonth()
-                                + " / 비교 "
+                        ? "지출 내역 없음."
+                        : selectedMonth()
+                                + " 누적 / 비교 "
                                 + a.getBaselineMonths()
-                                + "개월 (직전 3개월 범위) / 예상 지출 "
+                                + "개월 / 예상 지출 "
                                 + won(a.getForecast())
                                 + "원");
 
@@ -738,12 +719,12 @@ public final class MainFrame extends JFrame {
         }
         savings.setText(
                 calculate && !a.getEmpty()
-                        ? "선택 월 누적 지출 기준  |  월간 절감 "
+                        ? "월간 절감 "
                                 + won(a.getMonthlySaving())
                                 + "원 / 연간 절감 "
                                 + won(a.getAnnualSaving())
-                                + "원 (동일 계획 12개월 가정)"
-                        : "절감 조건을 선택하고 계산을 눌러 주세요.");
+                                + "원"
+                        : " ");
     }
 
     private void updateReceipt() {
@@ -752,7 +733,7 @@ public final class MainFrame extends JFrame {
                 row < 0 || row >= displayedNoSpends.size()
                         ? null
                         : displayedNoSpends.get(nsTable.convertRowIndexToModel(row));
-        receipt.setText(n == null ? "꾹참기 내역을 선택하면 영수증을 확인할 수 있습니다." : service.receipt(n.getId()));
+        receipt.setText(n == null ? "선택한 기록 없음." : service.receipt(n.getId()));
         receipt.setCaretPosition(0);
         // 선택한 기록에서 할 수 있는 작업만 버튼을 켜둔다.
         linkButton.setEnabled(
@@ -833,7 +814,7 @@ public final class MainFrame extends JFrame {
     }
 
     private AppException selectError() {
-        return new AppException(AppException.Code.VALIDATION_ERROR, "목록에서 한 행을 먼저 선택해 주세요.");
+        return new AppException(AppException.Code.VALIDATION_ERROR, "선택한 항목 없음.");
     }
 
     private YearMonth selectedMonth() {
@@ -874,11 +855,11 @@ public final class MainFrame extends JFrame {
             action.run();
         } catch (AppException e) {
             JOptionPane.showMessageDialog(
-                    this, e.getMessage(), e.code().toString(), JOptionPane.WARNING_MESSAGE);
+                    this, e.getMessage(), "오류", JOptionPane.WARNING_MESSAGE);
         } catch (IllegalArgumentException e) {
             JOptionPane.showMessageDialog(
                     this,
-                    "날짜와 금액 형식을 확인해 주세요. 날짜: YYYY-MM-DD, 금액: 정수 원",
+                    "날짜: YYYY-MM-DD / 금액: 정수 원",
                     "입력 오류",
                     JOptionPane.WARNING_MESSAGE);
         }
@@ -893,7 +874,7 @@ public final class MainFrame extends JFrame {
             return LocalDate.parse(s.trim());
         } catch (java.time.format.DateTimeParseException e) {
             throw new AppException(
-                    AppException.Code.VALIDATION_ERROR, "날짜는 YYYY-MM-DD 형식으로 입력해 주세요.");
+                    AppException.Code.VALIDATION_ERROR, "날짜 형식: YYYY-MM-DD");
         }
     }
 

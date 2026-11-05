@@ -49,7 +49,7 @@ public final class AccountService {
      * @throws AppException 입력이 잘못됐거나 선택한 항목이 없거나 저장에 실패한 경우
      */
     public synchronized List<Entry> manageTransaction(TransactionCommand c) {
-        require(c != null && c.getAction() != null, "거래 작업을 선택해 주세요.");
+        require(c != null && c.getAction() != null, "거래 작업을 선택해야 함.");
 
         // 조회할 때는 입력한 조건에 맞는 거래만 골라낸다.
         if (c.getAction() == Action.QUERY) {
@@ -74,7 +74,7 @@ public final class AccountService {
 
         require(
                 Set.of(Action.CREATE, Action.UPDATE, Action.DELETE).contains(c.getAction()),
-                "허용하지 않은 거래 작업입니다.");
+                "지원하지 않는 거래 작업임.");
         // 추가, 수정, 삭제는 기존 목록을 복사해서 처리한다.
         List<Entry> entries = new ArrayList<>(state.getEntries());
         if (c.getAction() != Action.CREATE) {
@@ -85,12 +85,12 @@ public final class AccountService {
             entries.removeIf(e -> e.getId().equals(c.getId()));
         } else {
             date(c.getDate());
-            require(c.getType() != null, "거래 유형을 선택해 주세요.");
-            require(CATEGORIES.contains(c.getCategory()), "카테고리를 선택해 주세요.");
+            require(c.getType() != null, "거래 유형을 선택해야 함.");
+            require(CATEGORIES.contains(c.getCategory()), "카테고리를 선택해야 함.");
             money(c.getAmount(), false);
 
             String description = c.getDescription() == null ? "" : c.getDescription().trim();
-            require(description.length() <= 200, "상세 내용은 200자 이하로 입력해 주세요.");
+            require(description.length() <= 200, "상세 내용은 200자까지 입력 가능함.");
 
             UUID id = c.getAction() == Action.CREATE ? UUID.randomUUID() : c.getId();
             entries.removeIf(e -> e.getId().equals(id));
@@ -123,10 +123,10 @@ public final class AccountService {
      * @throws AppException 월이나 예산 입력이 잘못됐거나 저장에 실패한 경우
      */
     public synchronized Summary manageMonthlyFinance(BudgetCommand c) {
-        require(c != null && c.getMonth() != null, "조회 월을 선택해 주세요.");
+        require(c != null && c.getMonth() != null, "조회할 월을 선택해야 함.");
         require(
                 c.getAction() == Action.QUERY || c.getAction() == Action.SET_BUDGET,
-                "허용하지 않은 예산 작업입니다.");
+                "지원하지 않는 예산 작업임.");
 
         // 예산을 바꿀 때만 저장하고, 조회할 때는 계산만 한다.
         if (c.getAction() == Action.SET_BUDGET) {
@@ -172,17 +172,17 @@ public final class AccountService {
      */
     public synchronized Analysis analyzeSpending(
             YearMonth month, String category, BigDecimal rate) {
-        require(month != null, "분석 월을 선택해 주세요.");
+        require(month != null, "분석할 월을 선택해야 함.");
         if (month.isAfter(YearMonth.from(today()))) {
-            throw new AppException(INVALID_MONTH, "미래 월은 분석할 수 없습니다.");
+            throw new AppException(INVALID_MONTH, "미래 월은 분석할 수 없음.");
         }
-        require((category == null) == (rate == null), "절감 카테고리와 비율을 함께 선택해 주세요.");
+        require((category == null) == (rate == null), "카테고리와 절감 비율을 함께 선택해야 함.");
         if (rate != null) {
             require(
                     CATEGORIES.contains(category)
                             && rate.signum() > 0
                             && rate.compareTo(BigDecimal.ONE) <= 0,
-                    "절감 비율은 1~100% 범위로 선택해 주세요.");
+                    "절감 비율은 1~100%만 가능함.");
         }
 
         BigDecimal total = sum(month, Type.EXPENSE);
@@ -247,13 +247,13 @@ public final class AccountService {
      * @throws AppException 입력이 잘못됐거나 선택한 항목이 없거나 저장에 실패한 경우
      */
     public synchronized List<GoalStatus> manageGoal(GoalCommand c) {
-        require(c != null && c.getAction() != null, "목표 작업을 선택해 주세요.");
+        require(c != null && c.getAction() != null, "목표 작업을 선택해야 함.");
 
         if (c.getAction() != Action.QUERY) {
             require(
                     Set.of(Action.CREATE, Action.UPDATE, Action.DELETE, Action.ADD_SAVING)
                             .contains(c.getAction()),
-                    "허용하지 않은 목표 작업입니다.");
+                    "지원하지 않는 목표 작업임.");
             List<Goal> goals = new ArrayList<>(state.getGoals());
             List<NoSpend> records = new ArrayList<>(state.getNoSpends());
             Goal old = c.getAction() == Action.CREATE ? null : goal(c.getId());
@@ -317,7 +317,7 @@ public final class AccountService {
      * @throws AppException 입력이나 저장에 문제가 있거나 목표가 없거나 이미 반영한 경우
      */
     public synchronized List<NoSpend> manageNoSpend(NoSpendCommand c) {
-        require(c != null && c.getAction() != null, "꾹참기 작업을 선택해 주세요.");
+        require(c != null && c.getAction() != null, "꾹참기 작업을 선택해야 함.");
 
         if (c.getAction() == Action.QUERY) {
             range(c.getFrom(), c.getTo());
@@ -353,11 +353,11 @@ public final class AccountService {
             NoSpend old = noSpend(c.getId());
             // 이미 반영했다면 여기서 멈춰서 두 번 더해지지 않게 한다.
             if (old.getApplied()) {
-                throw new AppException(ALREADY_APPLIED, "이미 실제 저축에 반영한 내역입니다.");
+                throw new AppException(ALREADY_APPLIED, "이미 실제 저축에 반영됨.");
             }
 
             if (c.getAction() == Action.LINK_GOAL) {
-                require(old.getGoalId() == null, "이미 목표가 연결되어 있습니다.");
+                require(old.getGoalId() == null, "이미 연결된 목표가 있음.");
                 goal(c.getGoalId());
                 next =
                         new NoSpend(
@@ -369,7 +369,7 @@ public final class AccountService {
                                 false);
             } else if (c.getAction() == Action.APPLY_ACTUAL) {
                 if (old.getGoalId() == null) {
-                    throw new AppException(GOAL_REQUIRED, "목표를 먼저 연결해 주세요.");
+                    throw new AppException(GOAL_REQUIRED, "목표 연결이 필요함.");
                 }
                 // 목표에 금액을 더하고 반영 여부도 같이 바꿔준다.
                 Goal g = goal(old.getGoalId());
@@ -390,7 +390,7 @@ public final class AccountService {
                                 old.getGoalId(),
                                 true);
             } else {
-                throw new AppException(VALIDATION_ERROR, "허용하지 않은 꾹참기 작업입니다.");
+                throw new AppException(VALIDATION_ERROR, "지원하지 않는 꾹참기 작업임.");
             }
 
             records.removeIf(n -> n.getId().equals(old.getId()));
@@ -454,7 +454,6 @@ public final class AccountService {
 
         return b.append("실제 저축 반영: ")
                 .append(n.getApplied() ? "완료" : "미반영")
-                .append("\n\n가상 절약액은 실제 저축액과 합산하지 않습니다.\n조회 시점의 목표 정보와 전체 누적액을 표시합니다.")
                 .toString();
     }
 
@@ -475,7 +474,7 @@ public final class AccountService {
     }
 
     /**
-     * 화면 아래에 보여줄 저장 위치를 확인한다.
+     * 데이터가 저장되는 위치를 확인한다.
      * @return 저장 파일의 위치
      */
     public String dataPath() {
@@ -559,21 +558,21 @@ public final class AccountService {
         return state.getEntries().stream()
                 .filter(x -> x.getId().equals(id))
                 .findFirst()
-                .orElseThrow(() -> new AppException(NOT_FOUND, "거래를 다시 선택해 주세요."));
+                .orElseThrow(() -> new AppException(NOT_FOUND, "거래를 다시 선택해야 함."));
     }
 
     private Goal goal(UUID id) {
         return state.getGoals().stream()
                 .filter(x -> x.getId().equals(id))
                 .findFirst()
-                .orElseThrow(() -> new AppException(NOT_FOUND, "목표를 다시 선택해 주세요."));
+                .orElseThrow(() -> new AppException(NOT_FOUND, "목표를 다시 선택해야 함."));
     }
 
     private NoSpend noSpend(UUID id) {
         return state.getNoSpends().stream()
                 .filter(x -> x.getId().equals(id))
                 .findFirst()
-                .orElseThrow(() -> new AppException(NOT_FOUND, "꾹참기 내역을 다시 선택해 주세요."));
+                .orElseThrow(() -> new AppException(NOT_FOUND, "꾹참기 내역을 다시 선택해야 함."));
     }
 
     private static boolean blank(String s) {
@@ -591,16 +590,16 @@ public final class AccountService {
     }
 
     private static String name(String s) {
-        require(s != null && !s.isBlank() && s.trim().length() <= 50, "이름은 1~50자로 입력해 주세요.");
+        require(s != null && !s.isBlank() && s.trim().length() <= 50, "이름은 1~50자만 가능함.");
         return s.trim();
     }
 
     private void date(LocalDate date) {
-        require(date != null && !date.isAfter(today()), "날짜는 오늘 이전 또는 오늘로 입력해 주세요.");
+        require(date != null && !date.isAfter(today()), "오늘까지의 날짜만 입력 가능함.");
     }
 
     private static void range(LocalDate a, LocalDate b) {
-        require(a == null || b == null || !a.isAfter(b), "시작일은 종료일 이후일 수 없습니다.");
+        require(a == null || b == null || !a.isAfter(b), "종료일은 시작일보다 빠를 수 없음.");
     }
 
     private static void money(BigDecimal v, boolean zero) {
@@ -609,7 +608,7 @@ public final class AccountService {
                         && (zero ? v.signum() >= 0 : v.signum() > 0)
                         && v.stripTrailingZeros().scale() <= 0
                         && v.compareTo(new BigDecimal("999999999999")) <= 0,
-                (zero ? "0 이상" : "0 초과") + " 999,999,999,999원 이하의 정수 금액을 입력해 주세요.");
+                (zero ? "0 이상" : "0 초과") + " 정수만 가능함. 최대 999,999,999,999원.");
     }
 
     // 불러온 파일에도 필요한 값이 빠진 곳이 없는지 확인한다.
@@ -654,7 +653,7 @@ public final class AccountService {
                         money(v, false);
                     });
         } catch (RuntimeException e) {
-            throw new AppException(IO_ERROR, "저장 데이터가 올바르지 않습니다. 원본은 보존됩니다: " + e.getMessage());
+            throw new AppException(IO_ERROR, "저장 파일의 내용이 올바르지 않음: " + e.getMessage());
         }
     }
 }
