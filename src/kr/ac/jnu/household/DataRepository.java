@@ -26,17 +26,27 @@ public class DataRepository implements AutoCloseable {
      */
     public DataRepository(Path file) {
         this.file = file.toAbsolutePath().normalize();
+
         try {
             Files.createDirectories(this.file.getParent());
-            lockChannel = FileChannel.open(this.file.resolveSibling(this.file.getFileName()+".lock"),
-                StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+            lockChannel =
+                    FileChannel.open(
+                            this.file.resolveSibling(this.file.getFileName() + ".lock"),
+                            StandardOpenOption.CREATE,
+                            StandardOpenOption.WRITE);
+
             lock = lockChannel.tryLock();
-            if (lock == null) throw new AppException(DATA_IN_USE, "같은 데이터로 실행 중인 프로그램을 먼저 종료해 주세요.");
+            if (lock == null) {
+                throw new AppException(DATA_IN_USE, "같은 데이터로 실행 중인 프로그램을 먼저 종료해 주세요.");
+            }
         } catch (OverlappingFileLockException e) {
-            close(); throw new AppException(DATA_IN_USE, "데이터 파일을 이미 사용 중입니다.");
+            close();
+            throw new AppException(DATA_IN_USE, "데이터 파일을 이미 사용 중입니다.");
         } catch (IOException | AppException e) {
             close();
-            if (e instanceof AppException a) throw a;
+            if (e instanceof AppException a) {
+                throw a;
+            }
             throw new AppException(IO_ERROR, "데이터 경로를 열 수 없습니다: " + e.getMessage());
         }
     }
@@ -48,12 +58,20 @@ public class DataRepository implements AutoCloseable {
      * @throws AppException 읽기·형식 오류
      */
     public State load(YearMonth start) {
-        if (!Files.exists(file)) return State.empty(start);
+        if (!Files.exists(file)) {
+            return State.empty(start);
+        }
+
         try (ObjectInputStream in = new ObjectInputStream(Files.newInputStream(file))) {
-            in.setObjectInputFilter(ObjectInputFilter.Config.createFilter(
-                "maxdepth=32;maxrefs=200000;maxbytes=33554432;kr.ac.jnu.household.*;java.base/*;!*"));
+            in.setObjectInputFilter(
+                    ObjectInputFilter.Config.createFilter(
+                            "maxdepth=32;maxrefs=200000;maxbytes=33554432;kr.ac.jnu.household.*;java.base/*;!*"));
+
             Object value = in.readObject();
-            if (!(value instanceof State state)) throw new IOException("저장 형식이 다릅니다.");
+            if (!(value instanceof State state)) {
+                throw new IOException("저장 형식이 다릅니다.");
+            }
+
             return state;
         } catch (IOException | ClassNotFoundException | RuntimeException e) {
             throw new AppException(IO_ERROR, "데이터를 읽지 못했습니다. 원본 파일은 유지됩니다: " + e.getMessage());
@@ -67,17 +85,31 @@ public class DataRepository implements AutoCloseable {
      */
     public void commit(State state) {
         Path temp = null;
+
         try {
             temp = Files.createTempFile(file.getParent(), "ledger-", ".tmp");
+
             try (FileOutputStream out = new FileOutputStream(temp.toFile());
-                 ObjectOutputStream objects = new ObjectOutputStream(out)) {
-                objects.writeObject(state); objects.flush(); out.getFD().sync();
+                    ObjectOutputStream objects = new ObjectOutputStream(out)) {
+                objects.writeObject(state);
+                objects.flush();
+                out.getFD().sync();
             }
-            Files.move(temp, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+
+            Files.move(
+                    temp,
+                    file,
+                    StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new AppException(IO_ERROR, "저장에 실패했습니다. 변경 전 상태를 유지합니다: " + e.getMessage());
         } finally {
-            if (temp != null) try { Files.deleteIfExists(temp); } catch (IOException ignored) { }
+            if (temp != null) {
+                try {
+                    Files.deleteIfExists(temp);
+                } catch (IOException ignored) {
+                }
+            }
         }
     }
 
@@ -85,10 +117,25 @@ public class DataRepository implements AutoCloseable {
      * 저장 위치를 반환한다.
      * @return 정규화된 절대 경로
      */
-    public Path path() { return file; }
+    public Path path() {
+        return file;
+    }
+
     /** 잠금과 파일 채널을 해제한다. */
-    @Override public void close() {
-        try { if (lock != null) lock.release(); } catch (IOException ignored) { }
-        try { if (lockChannel != null) lockChannel.close(); } catch (IOException ignored) { }
+    @Override
+    public void close() {
+        try {
+            if (lock != null) {
+                lock.release();
+            }
+        } catch (IOException ignored) {
+        }
+
+        try {
+            if (lockChannel != null) {
+                lockChannel.close();
+            }
+        } catch (IOException ignored) {
+        }
     }
 }
